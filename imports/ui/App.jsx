@@ -2,7 +2,6 @@ import React, { Component } from 'react';
 import ReactDOM from 'react-dom';
 import PropTypes from 'prop-types';
 import { createContainer } from 'meteor/react-meteor-data';
-
 import { Tasks } from '../api/tasks.js';
 import Task from './Task.jsx';
 import AccountsUIWrapper from './AccountsUIWrapper.jsx';
@@ -39,9 +38,18 @@ handleSubmit(event) {
     if (this.state.hideCompleted) {
       filteredTasks = filteredTasks.filter(task => !task.checked);
     }
-    return filteredTasks.map((task) => (
-      <Task key={task._id} task={task} />
-    ));
+      return filteredTasks.map((task) => {
+      const currentUserId = this.props.currentUser && this.props.currentUser._id;
+      const amITheUser = task.owner === currentUserId;
+ 
+      return (
+        <Task
+          key={task._id}
+          task={task}
+          amITheUser={amITheUser}
+        />
+      );
+    });
   }
  
   render() {
@@ -79,17 +87,19 @@ handleSubmit(event) {
     );
   }
 }
+
 App.propTypes = {
   tasks: PropTypes.array.isRequired,
-    incompleteCount: PropTypes.number.isRequired,
+  incompleteCount: PropTypes.number.isRequired,
   currentUser: PropTypes.object,
 };
  
 export default createContainer(() => {
+	Meteor.subscribe('tasks');
   return {
     tasks: Tasks.find({}, { sort: { createdAt: -1 } }).fetch(),
     incompleteCount: Tasks.find({ checked: { $ne: true } }).count(),
-currentUser: Meteor.user(),
+		currentUser: Meteor.user(),
   };
 }, App);
 
