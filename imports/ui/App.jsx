@@ -1,6 +1,7 @@
 
 
 import React, { Component } from 'react';
+import ReactDOM from 'react-dom';
 import PropTypes from 'prop-types';
 import { createContainer } from 'meteor/react-meteor-data';
 
@@ -14,20 +15,33 @@ import Task from './Task.jsx';
 
 class App extends Component {
 
-  getTasks() {
+handleSubmit(event) {
 
-    return [
+    event.preventDefault();
 
-      { _id: 1, text: 'This is task 1' },
+ 
 
-      { _id: 2, text: 'This is task 2' },
+    // Find the text field via the React ref
 
-      { _id: 3, text: 'This is task 3' },
+    const text = ReactDOM.findDOMNode(this.refs.textInput).value.trim();
 
-    ];
+ 
+
+    Tasks.insert({
+
+      text,
+
+      createdAt: new Date(), // current time
+
+    });
+
+ 
+
+    // Clear form
+
+    ReactDOM.findDOMNode(this.refs.textInput).value = '';
 
   }
-
  
 
   renderTasks() {
@@ -51,6 +65,20 @@ class App extends Component {
         <header>
 
           <h1>Todo List</h1>
+          
+                    <form className="new-task" onSubmit={this.handleSubmit.bind(this)} >
+
+            <input
+
+              type="text"
+
+              ref="textInput"
+
+              placeholder="Type to add new tasks"
+
+            />
+
+          </form>
 
         </header>
 
@@ -82,7 +110,7 @@ export default createContainer(() => {
 
   return {
 
-    tasks: Tasks.find({}).fetch(),
+    tasks: Tasks.find({}, { sort: { createdAt: -1 } }).fetch(),
 
   };
 
